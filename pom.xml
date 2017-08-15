@@ -36,5 +36,15 @@
   		<artifactId>google-api-services-calendar</artifactId>
   		<version>v3-rev249-1.22.0</version>
   	</dependency>
+  	<dependency>
+  		<groupId>com.google.apis</groupId>
+  		<artifactId>google-api-services-gmail</artifactId>
+  		<version>v1-rev62-1.22.0</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>javax.mail</groupId>
+  		<artifactId>mail</artifactId>
+  		<version>1.4.7</version>
+  	</dependency>
   </dependencies>
 </project>
