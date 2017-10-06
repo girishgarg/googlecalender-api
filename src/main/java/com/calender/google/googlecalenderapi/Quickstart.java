@@ -27,7 +27,7 @@ public class Quickstart {
 
     /** Directory to store user credentials for this application. */
     private static final java.io.File DATA_STORE_DIR = new java.io.File(
-        System.getProperty("user.home"), ".credentials/calendar-java-quickstart");
+        System.getProperty("user.home"), ".credentials/calendar-java-quickstart1");
 
     /** Global instance of the {@link FileDataStoreFactory}. */
     private static FileDataStoreFactory DATA_STORE_FACTORY;
@@ -110,15 +110,32 @@ public class Quickstart {
         Event event = new Event()
         	    .setSummary("Google I/O 2015")
         	    .setLocation("800 Howard St., San Francisco, CA 94103")
-        	    .setDescription("A chance to hear more about Google's developer products.");
+        	    .setDescription("Event Name: 30 Minute Meeting\n\n"
+                	    
+        	    		+"Location: This is a GoToMeeting web conference.\n\n\n"+
+        	    		
 
-        	DateTime startDateTime = new DateTime("2017-06-24T09:00:00-07:00");
+        	    		"You can join this meeting from your computer, tablet, or smartphone.\n"+
+        	    		"https://www.gotomeeting.com/join/868078309\n\n\n"+
+
+
+        	    			"You can also dial in using your phone.\n"+
+        	    			"US: +1 (646) 749-3122\n"+
+        	    			"Access Code: 868-078-309\n\n"+
+
+        	    			"Cancel this event:\n"+
+        	    				"https://calendly.com/cancellations/EAEEYJXAQY6DDHPO\n\n"+
+
+        	    					"Reschedule this event:\n"+
+        	    						"https://calendly.com/reschedulings/EAEEYJXAQY6DDHPO\n");
+
+        	DateTime startDateTime = new DateTime("2017-10-10T09:00:00-07:00");
         	EventDateTime start = new EventDateTime()
         	    .setDateTime(startDateTime)
         	    .setTimeZone("America/Los_Angeles");
         	event.setStart(start);
 
-        	DateTime endDateTime = new DateTime("2017-06-25T17:00:00-07:00");
+        	DateTime endDateTime = new DateTime("2017-10-10T17:00:00-07:00");
         	EventDateTime end = new EventDateTime()
         	    .setDateTime(endDateTime)
         	    .setTimeZone("America/Los_Angeles");
@@ -128,7 +145,7 @@ public class Quickstart {
         	event.setRecurrence(Arrays.asList(recurrence));
 
         	EventAttendee[] attendees = new EventAttendee[] {
-        	    new EventAttendee().setEmail("sushant@eze.ai"),
+        	    new EventAttendee().setEmail("girish@eze.ai"),
         	    //new EventAttendee().setEmail("sbrin@example.com"),
         	};
         	event.setAttendees(Arrays.asList(attendees));
@@ -143,7 +160,7 @@ public class Quickstart {
         	event.setReminders(reminders);
 
         	String calendarId = "primary";
-        	event = service.events().insert(calendarId, event).execute();
+        	event = service.events().insert(calendarId, event).setSendNotifications(true).execute();
         	System.out.printf("Event created: %s\n", event.getHtmlLink());
         // List the next 10 events from the primary calendar.
         DateTime now = new DateTime(System.currentTimeMillis());
