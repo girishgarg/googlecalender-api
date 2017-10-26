@@ -4,6 +4,7 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -13,6 +14,8 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.*;
+import com.google.api.services.oauth2.Oauth2;
+import com.google.api.services.oauth2.model.Userinfoplus;
 import com.google.api.services.gmail.Gmail;
 
 import java.io.IOException;
@@ -20,7 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
-
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +45,11 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 public class Mail {
 	 /** Application name. */
     private static final String APPLICATION_NAME =
@@ -49,7 +57,7 @@ public class Mail {
 
     /** Directory to store user credentials for this application. */
     private static final java.io.File DATA_STORE_DIR = new java.io.File(
-        System.getProperty("user.home"), ".credentials/gmail-java-quickstart");
+        System.getProperty("user.home"), ".credentials/gmail-java-quickstart16");
 
     /** Global instance of the {@link FileDataStoreFactory}. */
     private static FileDataStoreFactory DATA_STORE_FACTORY;
@@ -67,7 +75,7 @@ public class Mail {
      * at ~/.credentials/gmail-java-quickstart
      */
     private static final List<String> SCOPES =
-        Arrays.asList("https://mail.google.com/");
+        Arrays.asList("https://www.googleapis.com/auth/userinfo.profile",GmailScopes.MAIL_GOOGLE_COM);
 
     static {
         try {
@@ -112,11 +120,42 @@ public class Mail {
      */
     public static Gmail getGmailService() throws IOException {
         Credential credential = authorize();
+        String userinfo = userinfo(credential.getAccessToken());
+        String info = emailaddress(credential.getAccessToken());
         return new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                 .setApplicationName(APPLICATION_NAME)
                 .build();
     }
 
+    private static String emailaddress(String accessToken) throws ClientProtocolException, IOException {
+    	DefaultHttpClient httpClient = new DefaultHttpClient();
+		StringBuilder   builder = new StringBuilder();
+		HttpGet postRequest = new HttpGet(
+			"https://www.googleapis.com/gmail/v1/users/me/profile");
+		postRequest.addHeader("Authorization", "Bearer "+accessToken);
+		HttpResponse response = httpClient.execute(postRequest);
+		 BufferedReader rd = new BufferedReader (new InputStreamReader(response.getEntity().getContent()));
+		  String line = "";
+		  while ((line = rd.readLine()) != null) {
+			  builder.append(line);
+		  }
+		  String info = builder.toString();
+		  System.out.println(info);
+		  return info;
+		
+	}
+
+    
+    public static String userinfo(String accesstoken) throws IOException{
+    	GoogleCredential credential = new GoogleCredential().setAccessToken(accesstoken);   
+    	 Oauth2 oauth2 = new Oauth2.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential).setApplicationName(
+    	          "Oauth2").build();
+    	 Userinfoplus userinfo = oauth2.userinfo().get().execute();
+    	System.out.println(userinfo.toPrettyString());
+    	return userinfo.toPrettyString();
+    }
+    
+    
     public static void main(String[] args) throws IOException {
         // Build a new authorized API client service.
         Gmail service = getGmailService();
