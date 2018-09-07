@@ -158,9 +158,8 @@ public class Mail {
     
     public static void main(String[] args) throws IOException {
         // Build a new authorized API client service.
-        Gmail service = getGmailService();
-
-        // Print the labels in the user's account.
+    	Gmail service = getGmailService();
+    	        // Print the labels in the user's account.
         String user = "me";
         ListLabelsResponse listResponse =
             service.users().labels().list(user).execute();
@@ -201,6 +200,9 @@ public class Mail {
      * @return the MimeMessage to be used to send email
      * @throws MessagingException
      */
+    
+    
+    
     public static MimeMessage createEmail(String to,
                                           String from,
                                           String subject,
