@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.mail.Header;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
@@ -79,6 +80,8 @@ public class FetchMailAndAttachment {
      */
     private static final List<String> SCOPES =
         Arrays.asList("https://www.googleapis.com/auth/userinfo.profile",GmailScopes.MAIL_GOOGLE_COM);
+
+	private static final boolean MessagePart = false;
 
     static {
         try {
@@ -132,7 +135,8 @@ public class FetchMailAndAttachment {
     public static void main(String[] args) throws IOException {
         // Build a new authorized API client service.
     	Gmail service = getGmailService();
-    	String query = "from:komal.arora@phocket.in";
+    	//String query = "from:komal.arora@phocket.in";
+    	String query = "from:nishan@nsdl.co.in";
     	String userId = "me";
     	ListMessagesResponse response = service.users().messages().list(userId).setQ(query).execute();
 
@@ -147,9 +151,10 @@ public class FetchMailAndAttachment {
             break;
           }
         }
+        
        
         for (Message message : messages) {
-        	StringBuilder stringBuilder = new StringBuilder();
+        	/*StringBuilder stringBuilder = new StringBuilder();
         	Message messagee = service.users().messages().get("me",message.getId()).execute();
         	//System.out.println(messagee.getId());
         	//System.out.println(messagee.getSnippet());
@@ -157,16 +162,70 @@ public class FetchMailAndAttachment {
             getPlainTextFromMessageParts(messagee.getPayload().getParts(), stringBuilder);
             byte[] bodyBytes = Base64.decodeBase64(stringBuilder.toString());
             String text = new String(bodyBytes, "UTF-8");
-            System.out.println(text);
+            System.out.println(text);*/
+        	Message messagee = service.users().messages().get("me",message.getId()).execute();
+        	MailObjectPO mailObject = new MailObjectPO();
+        	if(messagee.getLabelIds().contains("CHAT")) {
+        		
+        	}else {
+        		mailObject.setId(messagee.getId());
+        		mailObject.setSnippet(messagee.getSnippet());
+        		mailObject.setAttachmentstatus(false);
+        		List<MessagePart> messageparts = messagee.getPayload().getParts();
+        		List<String> filenames = new ArrayList<String>();
+        		for(MessagePart messagePart:messageparts) {
+        			if (messagePart.getFilename() != null && messagePart.getFilename().length() > 0) {
+        				mailObject.setAttachmentstatus(true);
+        				filenames.add(messagePart.getFilename());
+        			}
+        		}
+        		mailObject.setAttachmentname(filenames);
+        		List<MessagePartHeader> headers = messagee.getPayload().getHeaders();
+        		for (MessagePartHeader headerparts : headers) {
+                    if (headerparts.getName().equals("From")) {
+                        mailObject.setFrom(headerparts.getValue());
+                    }
+                    if (headerparts.getName().equals("To")) {
+                        mailObject.setTo(headerparts.getValue());
+                    }
+                    if (headerparts.getName().equals("CC")) {
+                        mailObject.setCc(headerparts.getValue());
+                    }
+                    if (headerparts.getName().equals("Date")) {
+                        mailObject.setDate(headerparts.getValue());;
+                    }
+                    if (headerparts.getName().equals("Subject")) {
+                        mailObject.setSubject(headerparts.getValue());;
+                    }
+                    if (headerparts.getName().equals("Delivered-To")) {
+                        mailObject.setDeliveredto(headerparts.getValue());
+                    }
+                }
+        		
+        		StringBuilder stringBuilder = new StringBuilder();
+        		getPlainTextFromMessageParts(messagee.getPayload().getParts(), stringBuilder);
+        		byte[] bodyBytes = Base64.decodeBase64(stringBuilder.toString());
+                String text = new String(bodyBytes, "UTF-8");
+                //System.out.println(text);
+                mailObject.setBody(text);
+        		//System.out.println(messagee.getLabelIds());
+        		//System.out.println(messagee);
+            	//System.out.println(message.getId());
+                
+            	if(mailObject.isAttachmentstatus()) {
+            		getAttachmentwithmail(messageparts,service,message.getId());
+            	}
+        	}
+        	//if(messagee.getLabelIds().get(0)) 
+        	System.out.println(mailObject.isAttachmentstatus());
+        	System.out.println(mailObject.getAttachmentname());
+        	System.out.println(mailObject.getSnippet());
+        	
         }
         
-        
-    	
-        
-
-        
+     }
     
-    }
+    
     
     public static void getPlainTextFromMessageParts(List<MessagePart> messageParts, StringBuilder stringBuilder) {
         for (MessagePart messagePart : messageParts) {
